@@ -14,10 +14,14 @@ var questionsSchema = new Schema({
     downvote: [],
     answer: [{
         answer: String,
-        name: String,
+        username: String,
         upvote: [],
         downvote: [],
     }],
+    category: {
+        type: String,
+        required: [true, 'Category is required']
+    },
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User'

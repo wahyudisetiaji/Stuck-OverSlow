@@ -1,19 +1,24 @@
 <template>
-  <div>
-    <CarouselHome></CarouselHome>
-    <JumbotronHome></JumbotronHome>
+  <div class="myquestions">
+    <v-layout row wrap>
+      <v-flex xs5>
+        <v-btn to="/myquestions/create">Create Question</v-btn>
+        <ListMyQuestions></ListMyQuestions>
+      </v-flex>
+      <v-flex xs7>
+        <router-view></router-view>
+      </v-flex>
+    </v-layout>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
-import CarouselHome from '@/components/home/CarouselHome.vue'
-import JumbotronHome from '@/components/home/JumbotronHome.vue'
+import ListMyQuestions from '@/components/myquestions/ListMyQuestions.vue'
 
 export default {
   components: {
-    CarouselHome,
-    JumbotronHome
+    ListMyQuestions
   },
   computed: {
     ...mapState([
@@ -36,3 +41,9 @@ export default {
   }
 }
 </script>
+
+<style>
+.myquestions {
+  margin: 2%;
+}
+</style>

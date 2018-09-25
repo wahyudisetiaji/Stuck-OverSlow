@@ -3,6 +3,7 @@ var router = express.Router();
 var {isLogin} = require('../middlewares/isLogin')
 const {
     getAllQuestions,
+    getAllCategory,
     getMyQuestions, 
     getOneQuestions,
     createQuestions,
@@ -18,6 +19,7 @@ const {
 
 router.get('/', getAllQuestions)
 router.get('/me', isLogin, getMyQuestions)
+router.get('/:category', getAllCategory)
 router.get('/question/:id', getOneQuestions)
 router.post('/create', isLogin, createQuestions)
 router.put('/update/:id', isLogin, updateMyQuestions)

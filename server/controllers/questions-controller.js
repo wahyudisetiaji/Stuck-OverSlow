@@ -16,6 +16,7 @@ module.exports = {
                 Questions.create({
                     title: req.body.title,
                     questions: req.body.questions,
+                    category: req.body.category,
                     userId: decode.id
                 })
                 .then((result) => {
@@ -144,6 +145,7 @@ module.exports = {
                         $set: {
                         title: req.body.title,
                         questions: req.body.questions,
+                        category: req.body.category,
                         }
                     }
                 )
@@ -196,6 +198,22 @@ module.exports = {
     getAllQuestions: function (req, res) {
         let id = req.params.id 
         Questions.find({})
+        .populate('userId')
+        .then((result) => {
+            res.status(200).json({
+                result
+            })
+        })
+        .catch((err) => {
+            res.status(400).json({
+                message: err.message
+            })
+        });
+    },
+
+    getAllCategory: function (req, res) {
+        let category = req.params.category
+        Questions.find({category: category})
         .populate('userId')
         .then((result) => {
             res.status(200).json({
@@ -333,8 +351,7 @@ module.exports = {
                     {$push: {
                             answer: {
                                 answer: req.body.answer,
-                                name: decode.name,
-        
+                                username: decode.username,
                             }}
                     }
                 )
@@ -376,79 +393,72 @@ module.exports = {
         let idAnswer = req.body.idAnswer
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
 
-        User.findOne({_id: req.user._id})
+        Questions.findOne({_id: id})
         .then((result) => {
-            console.log(result);
-            
-            if(result._id.toLocaleString() == decode.id.toLocaleString()) {
 
-                res.status(200).json({
-                   message: 'dilarang vote answer sendiri!'
+            let user = false
+            if (result._id.toLocaleString() == id.toLocaleString()) {
+
+                result.answer.forEach(element => {
+                    if (element.username == decode.username) {
+                        user = true
+                        res.status(200).json({
+                            message: 'dilarang vote answer sendiri!'
+                         })
+                    }
                 })
 
-            } else {
+            } 
 
-                Questions.findOne({_id: id})
-                .then((result) => {   
-                        let status = false
-                        let dataTmpAnswer
-                        result.answer.forEach(element => {
-                            if(element._id == idAnswer) {
-                                dataTmpAnswer = element 
-                            }
-                        })
-                        dataTmpAnswer.upvote.forEach(element => {
-                            if(element.userId == decode.id) {
-                                status = true
-                            }
-                        })
-                        dataTmpAnswer.downvote.forEach(element => {
-                            if(element.userId == decode.id) {
-                                status = true
-                            }
-                        })
-                        dataTmpAnswer.upvote.push({userId: decode.id})
-                        let allAnswer = result.answer
-                        allAnswer.forEach(element => {
-                            if(element._id == idAnswer) {
-                                element = dataTmpAnswer 
-                            }
-                            
-                        })
-        
-                        if(status == false) {
-                                Questions.updateOne(
-                                {_id: id},
-                                {$set: {
-                                    answer: allAnswer
-                                }}
-                            )
-                            .then((result) => {
-                                res.status(200).json({
-                                    message: 'upvote berhasil!'
-                                 })
+                let status = false
+                let dataTmpAnswer
+                result.answer.forEach(element => {
+                    if(element._id == idAnswer) {
+                        dataTmpAnswer = element 
+                    }
+                })
+                dataTmpAnswer.upvote.forEach(element => {
+                    if(element.userId == decode.id) {
+                        status = true
+                    }
+                })
+                dataTmpAnswer.downvote.forEach(element => {
+                    if(element.userId == decode.id) {
+                        status = true
+                    }
+                })
+                dataTmpAnswer.upvote.push({userId: decode.id})
+                let allAnswer = result.answer
+                allAnswer.forEach(element => {
+                    if(element._id == idAnswer) {
+                        element = dataTmpAnswer 
+                    }
+                    
+                })
+    
+                if(status == false && user == false) {
+                        Questions.updateOne(
+                        {_id: id},
+                        {$set: {
+                            answer: allAnswer
+                        }}
+                    )
+                    .then((result) => {
+                        res.status(200).json({
+                            message: 'upvote berhasil!'
                             })
-                            .catch((err) => {
-                                res.status(400).json({
-                                    message: err.message
-                                })
-                            });
-                         }
-                         else{
-                            res.status(200).json({
-                                message: 'sudah nge-vote!'
-                             })
-                         } 
-                    
-                })
-                .catch((err) => {
-                    res.status(400).json({
-                        message: err.message
                     })
-                    
-                });
-
-            }
+                    .catch((err) => {
+                        res.status(400).json({
+                            message: err.message
+                        })
+                    });
+                    }
+                    else{
+                    res.status(200).json({
+                        message: 'sudah nge-vote!'
+                        })
+                    } 
 
         })
         .catch((err) => {
@@ -467,79 +477,73 @@ module.exports = {
         let idAnswer = req.body.idAnswer 
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
 
-        User.findOne({_id: req.user._id})
+        Questions.findOne({_id: id})
         .then((result) => {
             
-            if(result._id.toLocaleString() == decode.id.toLocaleString()) {
-                
-                res.status(200).json({
-                   message: 'dilarang vote answer sendiri!'
+            let user = false
+            if (result._id.toLocaleString() == id.toLocaleString()) {
+
+                result.answer.forEach(element => {
+                    if (element.username == decode.username) {
+                        user = true
+                        res.status(200).json({
+                            message: 'dilarang vote answer sendiri!'
+                         })
+                    }
                 })
 
-            } else {
+            } 
 
-                Questions.findOne({_id: id})
-                .then((result) => {   
-                   
-                        let status = false
-                        let dataTmpAnswer
-                        result.answer.forEach(element => {
-                            if(element._id == idAnswer) {
-                                dataTmpAnswer = element 
-                            }
+            let status = false
+            let dataTmpAnswer
+            result.answer.forEach(element => {
+                if(element._id == idAnswer) {
+                    dataTmpAnswer = element 
+                }
+            })
+            dataTmpAnswer.downvote.forEach(element => {
+                if(element.userId == decode.id) {
+                    status = true
+                }
+            })
+            dataTmpAnswer.upvote.forEach(element => {
+                if(element.userId == decode.id) {
+                    status = true
+                }
+            })
+            dataTmpAnswer.downvote.push({userId: decode.id})
+            let allAnswer = result.answer
+            allAnswer.forEach(element => {
+                if(element._id == idAnswer) {
+                    element = dataTmpAnswer 
+                }
+                
+            })
+
+            if(status == false && user == false) {
+                    Questions.updateOne(
+                    {_id: id},
+                    {$set: {
+                        answer: allAnswer
+                    }}
+                )
+                .then((result) => {
+                    res.status(200).json({
+                        message: 'upvote berhasil!'
                         })
-                        dataTmpAnswer.downvote.forEach(element => {
-                            if(element.userId == decode.id) {
-                                status = true
-                            }
-                        })
-                        dataTmpAnswer.upvote.forEach(element => {
-                            if(element.userId == decode.id) {
-                                status = true
-                            }
-                        })
-                        dataTmpAnswer.downvote.push({userId: decode.id})
-                        let allAnswer = result.answer
-                        allAnswer.forEach(element => {
-                            if(element._id == idAnswer) {
-                                element = dataTmpAnswer 
-                            }
-                            
-                        })
-        
-                        if(status == false) {
-                                Questions.updateOne(
-                                {_id: id},
-                                {$set: {
-                                    answer: allAnswer
-                                }}
-                            )
-                            .then((result) => {
-                                res.status(200).json({
-                                    message: 'upvote berhasil!'
-                                 })
-                            })
-                            .catch((err) => {
-                                res.status(400).json({
-                                    message: err.message
-                                })
-                            });
-                         }
-                         else{
-                            res.status(200).json({
-                                message: 'sudah nge-vote!'
-                             })
-                         } 
-                    
                 })
                 .catch((err) => {
                     res.status(400).json({
                         message: err.message
                     })
-                    
                 });
+            } else {
+                res.status(200).json({
+                    message: 'sudah nge-vote!'
+                })
+            } 
+                   
 
-            }
 
         })
         .catch((err) => {
@@ -561,7 +565,7 @@ module.exports = {
         Questions.findOne({_id: id})
         .then((result) => {
             
-            if (result.userId.toLocaleString() == req.user._id.toLocaleString()) {
+            if (result._id.toLocaleString() == id.toLocaleString()) {
                 
                 result.answer.forEach(element => {
                     if(element._id == idAnswer) {
@@ -577,7 +581,7 @@ module.exports = {
                 .then((result) => {
                     res.status(200).json({
                         message: 'update answer berhasil!'
-                     })
+                    })
                 })
                 .catch((err) => {
                     res.status(400).json({

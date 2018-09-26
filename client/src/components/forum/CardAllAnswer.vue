@@ -14,7 +14,7 @@
                 <v-btn v-if="token"  @click="downvote(data._id)"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></v-btn>
               </v-card-text>
               <v-card-text>
-                <UpdateAnswer v-if="token" :dataAnswer="data"></UpdateAnswer>
+                <UpdateAnswer v-if="token & data.username === username" :dataAnswer="data"></UpdateAnswer>
               </v-card-text>
         </v-card>
       </v-flex>
@@ -35,7 +35,8 @@ export default {
     ...mapState([
       'allAnswer',
       'baseURL',
-      'token'
+      'token',
+      'username'
     ]),
     token: {
       get () {
@@ -43,6 +44,14 @@ export default {
       },
       set (value) {
         this.$store.commit('setToken', value)
+      }
+    },
+    username: {
+      get () {
+        return this.$store.state.username
+      },
+      set (value) {
+        this.$store.commit('setUsername', value)
       }
     },
     allAnswer: {
@@ -109,6 +118,10 @@ export default {
     let token = localStorage.getItem('token')
     if (token) {
       this.token = true
+    }
+    let username = localStorage.getItem('username')
+    if (username) {
+      this.username = username
     }
   }
 }

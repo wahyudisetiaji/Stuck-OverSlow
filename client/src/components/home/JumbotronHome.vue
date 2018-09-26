@@ -13,7 +13,7 @@
 
           <v-btn
             class="mx-0"
-            large
+            large to="/forum"
           >
             See more
           </v-btn>

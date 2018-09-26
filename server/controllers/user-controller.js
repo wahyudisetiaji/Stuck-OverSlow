@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const bcryptjs = require("bcryptjs");
 const jwt = require('jsonwebtoken')
+const { dataRegister } = require('../helpers/kueSendEmail')
 
 module.exports = {
 
@@ -29,6 +30,7 @@ module.exports = {
           username: user.username,
           email: user.email
         };
+        dataRegister(req.body.email)
         res.status(200).json({
           message: "user successfully registered",
           data
@@ -82,7 +84,7 @@ module.exports = {
       });
   },
 
-  googleSignIn: function (req, res) {
+  googleSignIn: function (req, res, next) {
     User.findOne({ email: req.body.email })
     .then((user) => {
 
@@ -112,10 +114,13 @@ module.exports = {
               username: user.username,
               email: user.email
             };
+
+            dataRegister(req.body.email)
             res.status(200).json({
               message: "user successfully registered",
               data
             });
+
           })
           .catch(err => {
             res.status(400).json({

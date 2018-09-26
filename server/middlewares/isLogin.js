@@ -18,8 +18,6 @@ module.exports = {
                     })
                 }
             }).catch((err) => {
-                console.log('-----masuk')
-                
                 res.status(400).json({
                     message: 'User must be Log In'
                 })
@@ -27,7 +25,7 @@ module.exports = {
             
         }else{
             res.status(400).json({
-                msg: 'User must be Log In'
+                message: 'User must be Log In'
             })
         }
     }

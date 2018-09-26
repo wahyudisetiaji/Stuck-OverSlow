@@ -24,7 +24,7 @@ module.exports = {
                     res.status(200).json({
                         message: 'create questions success',
                         result
-                    })
+                    }) 
 
                 })
                 .catch((err) => {
@@ -53,6 +53,7 @@ module.exports = {
     },
 
     getMyQuestions: function (req, res) {
+
         let token = req.headers.token
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
 
@@ -94,92 +95,71 @@ module.exports = {
     },
 
     deleteMyQuestions: function (req, res) {
+
         let id = req.params.id
+        if (req.owner) {
 
-        Questions.findOne({_id: id})
-        .then((result) => {
-            
-            if (result.userId.toLocaleString() == req.user._id.toLocaleString()) {
-
-                Questions.deleteOne({_id: id})
-                .then(() => {
-                    res.status(200).json({
-                    message: "questions successfully deleted"
-                    });
-                })
-                .catch(err => {
-                    res.status(400).json({
-                        message: err.message
-                    });
+            Questions.deleteOne({_id: id})
+            .then(() => {
+                res.status(200).json({
+                message: "questions successfully deleted"
                 });
-
-            } else {
-
+            })
+            .catch(err => {
                 res.status(400).json({
-                    message: `your not authorized !`
+                    message: err.message
                 });
-
-            }
-
-        })
-        .catch((err) => {
-
-             res.status(400).json({
-                message: err.message
             });
 
-        });
+        } else {
+
+            res.status(400).json({
+                message: `your not authorized !`
+            });
+
+        }
+            
+
     },
 
     updateMyQuestions: function (req, res) {
+
         let id = req.params.id
+        if (req.owner) {
 
-        Questions.findOne({_id: id})
-        .then((result) => {
-            
-            if (result.userId.toLocaleString() == req.user._id.toLocaleString()) {
-
-                Questions.updateOne(
-                    { _id: id },
-                    {
-                        $set: {
-                        title: req.body.title,
-                        questions: req.body.questions,
-                        category: req.body.category,
-                        }
+            Questions.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                    title: req.body.title,
+                    questions: req.body.questions,
+                    category: req.body.category,
                     }
-                )
-                .then(() => {
-                    res.status(200).json({
-                      message: "questions successfully updated"
-                    });
-                })
-                .catch(err => {
-                    res.status(400).json({
-                        message: err.message
-                    });
+                }
+            )
+            .then(() => {
+                res.status(200).json({
+                    message: "questions successfully updated"
                 });
-
-            } else {
-
+            })
+            .catch(err => {
                 res.status(400).json({
-                    message: `your not authorized !`
+                    message: err.message
                 });
-
-            }
-
-        })
-        .catch((err) => {
-            
-            res.status(400).json({
-                message: err.message
             });
 
-        });
-        
+        } else {
+
+            res.status(400).json({
+                message: `your not authorized !`
+            });
+
+        }
+          
     },
 
     getOneQuestions: function (req, res) {
+
         let id = req.params.id 
         Questions.find({_id: id})
         .populate('userId')
@@ -193,9 +173,11 @@ module.exports = {
                 message: err.message
             })
         });
+
     },
 
     getAllQuestions: function (req, res) {
+
         let id = req.params.id 
         Questions.find({})
         .populate('userId')
@@ -209,9 +191,11 @@ module.exports = {
                 message: err.message
             })
         });
+
     },
 
     getAllCategory: function (req, res) {
+
         let category = req.params.category
         Questions.find({category: category})
         .populate('userId')
@@ -225,116 +209,131 @@ module.exports = {
                 message: err.message
             })
         });
+
     },
 
     upVote: function (req, res) {
+
         let id = req.params.id
         let token = req.headers.token
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
         
-         Questions.findOne({_id: id})
-         .then((result) => {
-             if(result.userId.toLocaleString() == req.user._id.toLocaleString()) {
-                 res.status(200).json({
-                    message: 'dilarang vote question sendiri!'
-                 })
-             }else{
-                 let status = false
-                 result.upvote.forEach(element => {
-                     if(element.userId == decode.id) {
-                         status = true
-                     }
-                 })
-                 result.downvote.forEach(element => {
-                    if(element.userId == decode.id) {
-                        status = true
-                    }
-                })
+        let owner = false
+        if (req.owner) {
 
-                 if(status == false) {
-                    Questions.updateOne(
-                        {_id: id},
-                        {$push: {
-                            upvote: {userId: decode.id}
-                        }}
-                    )
-                    .then((result) => {
-                        res.status(200).json({
-                            message: 'upvote berhasil!'
-                         })
-                    })
-                    .catch((err) => {
-                        res.status(400).json({
-                            message: err.message
-                        })
-                    });
-                 }else{
+            owner = true
+            res.status(200).json({
+                message: 'Vote for yourself is prohibited !'
+            })
+
+        } 
+        
+        let status = false
+        req.questions.upvote.forEach(element => {
+
+            if(element.userId == decode.id) {
+                status = true
+            }
+
+        })
+        req.questions.downvote.forEach(element => {
+
+            if(element.userId == decode.id) {
+                status = true
+            }
+
+        })
+
+        if (status == false && owner == false) {
+
+            Questions.updateOne(
+                {_id: id},
+                {$push: {
+                    upvote: {userId: decode.id}
+                }}
+            )
+                .then((result) => {
                     res.status(200).json({
-                        message: 'sudah nge-vote!'
-                     })
-                 }  
-             }
-         })
-         .catch((err) => {
-             res.status(400).json({
-                 message: err.message
-             })
-         })
+                        message: 'Successful up vote !'
+                        })
+                })
+                .catch((err) => {
+                    res.status(400).json({
+                        message: err.message
+                    })
+                });
+
+        } else {
+
+            res.status(200).json({
+                message: 'Already vote !'
+            })
+
+        }  
+        
     },
 
     downVote: function (req, res) {
+       
         let id = req.params.id
         let token = req.headers.token
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
+        
+        let owner = false
+        if (req.owner) {
 
-         Questions.findOne({_id: id})
-         .then((result) => {
-             if(result.userId.toLocaleString() == req.user._id.toLocaleString()) {
-                 res.status(200).json({
-                    message: 'dilarang vote question sendiri!'
-                 })
-             }else{
-                 let status = false
-                 result.downvote.forEach(element => {
-                     if(element.userId == decode.id) {
-                         status = true
-                     }
-                 })
-                 result.upvote.forEach(element => {
-                    if(element.userId == decode.id) {
-                        status = true
-                    }
-                })
+            owner = true
+            res.status(200).json({
+                message: 'Vote for yourself is prohibited !'
+            })
 
-                 if(status == false) {
-                    Questions.updateOne(
-                        {_id: id},
-                        {$push: {
-                            downvote: {userId: decode.id}
-                        }}
-                    )
-                    .then((result) => {
-                        res.status(200).json({
-                            message: 'downvote berhasil!'
-                         })
-                    })
-                    .catch((err) => {
-                        res.status(400).json({
-                            message: err.message
-                        })
-                    });
-                 }else{
+        } 
+    
+        let status = false
+        req.questions.downvote.forEach(element => {
+
+            if(element.userId == decode.id) {
+                status = true
+            }
+
+        })
+        req.questions.upvote.forEach(element => {
+
+            if(element.userId == decode.id) {
+                status = true
+            }
+
+        })
+
+        if ( status == false && owner == false) {
+
+            Questions.updateOne(
+                {_id: id},
+                {$push: {
+                    downvote: {userId: decode.id}
+                }}
+            )
+                .then((result) => {
+
                     res.status(200).json({
-                        message: 'sudah nge-vote!'
-                     })
-                 }  
-             }
-         })
-         .catch((err) => {
-             res.status(400).json({
-                 message: err.message
-             })
-         })
+                        message: 'Successful down vote !'
+                    })
+
+                })
+                .catch((err) => {
+
+                    res.status(400).json({
+                        message: err.message
+                    })
+                });
+
+        } else {
+
+            res.status(200).json({
+                message: 'Already vote !'
+            })
+
+        }  
     },
 
     addAnswer: function (req, res) {
@@ -357,7 +356,7 @@ module.exports = {
                 )
                 .then((result) => {
                     res.status(200).json({
-                        message: 'add answer berhasil!'
+                        message: 'Add answer successfully !'
                      })
                 })
                 .catch((err) => {
@@ -392,82 +391,79 @@ module.exports = {
         let token = req.headers.token
         let idAnswer = req.body.idAnswer
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
+        
+        let user = false
+        if (req.questions) {
 
-        Questions.findOne({_id: id})
-        .then((result) => {
+            req.questions.answer.forEach(element => {
 
-            let user = false
-            if (result._id.toLocaleString() == id.toLocaleString()) {
-
-                result.answer.forEach(element => {
-                    if (element.username == decode.username) {
-                        user = true
-                        res.status(200).json({
-                            message: 'dilarang vote answer sendiri!'
-                         })
-                    }
-                })
-
-            } 
-
-                let status = false
-                let dataTmpAnswer
-                result.answer.forEach(element => {
-                    if(element._id == idAnswer) {
-                        dataTmpAnswer = element 
-                    }
-                })
-                dataTmpAnswer.upvote.forEach(element => {
-                    if(element.userId == decode.id) {
-                        status = true
-                    }
-                })
-                dataTmpAnswer.downvote.forEach(element => {
-                    if(element.userId == decode.id) {
-                        status = true
-                    }
-                })
-                dataTmpAnswer.upvote.push({userId: decode.id})
-                let allAnswer = result.answer
-                allAnswer.forEach(element => {
-                    if(element._id == idAnswer) {
-                        element = dataTmpAnswer 
-                    }
-                    
-                })
-    
-                if(status == false && user == false) {
-                        Questions.updateOne(
-                        {_id: id},
-                        {$set: {
-                            answer: allAnswer
-                        }}
-                    )
-                    .then((result) => {
-                        res.status(200).json({
-                            message: 'upvote berhasil!'
-                            })
-                    })
-                    .catch((err) => {
-                        res.status(400).json({
-                            message: err.message
-                        })
-                    });
-                    }
-                    else{
+                if (element._id == idAnswer && element.username == decode.username) {
+                    user = true
                     res.status(200).json({
-                        message: 'sudah nge-vote!'
-                        })
-                    } 
-
-        })
-        .catch((err) => {
-            
-            res.status(400).json({
-                message: err.message
+                        message: 'Vote for yourself is prohibited !'
+                    })
+                }
+                
             })
 
-        });
+        } 
+
+        let status = false
+        let dataTmpAnswer
+        req.questions.answer.forEach(element => {
+            if(element._id == idAnswer) {
+                dataTmpAnswer = element 
+            }
+        })
+
+        dataTmpAnswer.upvote.forEach(element => {
+            if(element.userId == decode.id) {
+                status = true
+            }
+        })
+
+        dataTmpAnswer.downvote.forEach(element => {
+            if(element.userId == decode.id) {
+                status = true
+            }
+        })
+
+        dataTmpAnswer.upvote.push({userId: decode.id})
+
+        let allAnswer = req.questions.answer
+        allAnswer.forEach(element => {
+            if(element._id == idAnswer) {
+                element = dataTmpAnswer 
+            }
+            
+        })
+
+        if(status == false && user == false) {
+
+            Questions.updateOne(
+                {_id: id},
+                {$set: {
+                    answer: allAnswer
+                }}
+            )
+                .then((result) => {
+                    res.status(200).json({
+                        message: 'Successful up vote !'
+                        })
+                })
+                .catch((err) => {
+                    res.status(400).json({
+                        message: err.message
+                    })
+                });
+
+        } else {
+
+            res.status(200).json({
+                message: 'Already vote !'
+            })
+
+        } 
        
     },
 
@@ -477,59 +473,60 @@ module.exports = {
         let idAnswer = req.body.idAnswer 
         let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
 
-        Questions.findOne({_id: id})
-        .then((result) => {
+        let user = false
+        if (req.questions) {
+
+            req.questions.answer.forEach(element => {
+                if (element._id == idAnswer && element.username == decode.username) {
+                    user = true
+                    res.status(200).json({
+                        message: 'Vote for yourself is prohibited !'
+                        })
+                }
+            })
+
+        } 
+
+        let status = false
+        let dataTmpAnswer
+        req.questions.answer.forEach(element => {
+            if(element._id == idAnswer) {
+                dataTmpAnswer = element 
+            }
+        })
+
+        dataTmpAnswer.downvote.forEach(element => {
+            if(element.userId == decode.id) {
+                status = true
+            }
+        })
+
+        dataTmpAnswer.upvote.forEach(element => {
+            if(element.userId == decode.id) {
+                status = true
+            }
+        })
+
+        dataTmpAnswer.downvote.push({userId: decode.id})
+
+        let allAnswer = req.questions.answer
+        allAnswer.forEach(element => {
+            if(element._id == idAnswer) {
+                element = dataTmpAnswer 
+            }
             
-            let user = false
-            if (result._id.toLocaleString() == id.toLocaleString()) {
+        })
 
-                result.answer.forEach(element => {
-                    if (element.username == decode.username) {
-                        user = true
-                        res.status(200).json({
-                            message: 'dilarang vote answer sendiri!'
-                         })
-                    }
-                })
-
-            } 
-
-            let status = false
-            let dataTmpAnswer
-            result.answer.forEach(element => {
-                if(element._id == idAnswer) {
-                    dataTmpAnswer = element 
-                }
-            })
-            dataTmpAnswer.downvote.forEach(element => {
-                if(element.userId == decode.id) {
-                    status = true
-                }
-            })
-            dataTmpAnswer.upvote.forEach(element => {
-                if(element.userId == decode.id) {
-                    status = true
-                }
-            })
-            dataTmpAnswer.downvote.push({userId: decode.id})
-            let allAnswer = result.answer
-            allAnswer.forEach(element => {
-                if(element._id == idAnswer) {
-                    element = dataTmpAnswer 
-                }
-                
-            })
-
-            if(status == false && user == false) {
-                    Questions.updateOne(
-                    {_id: id},
-                    {$set: {
-                        answer: allAnswer
-                    }}
-                )
+        if(status == false && user == false) {
+            Questions.updateOne(
+                {_id: id},
+                {$set: {
+                    answer: allAnswer
+                }}
+            )
                 .then((result) => {
                     res.status(200).json({
-                        message: 'upvote berhasil!'
+                        message: 'Successful down vote !'
                         })
                 })
                 .catch((err) => {
@@ -537,75 +534,50 @@ module.exports = {
                         message: err.message
                     })
                 });
-            } else {
-                res.status(200).json({
-                    message: 'sudah nge-vote!'
-                })
-            } 
-                   
-
-
-        })
-        .catch((err) => {
-
-            res.status(400).json({
-                message: err.message
+        } else {
+            res.status(200).json({
+                message: 'Already vote !'
             })
-
-        });
+        } 
        
     },
 
     updateAnswer: function (req, res) {
         let id = req.params.id 
-        let token = req.headers.token
         let idAnswer = req.body.idAnswer 
-        let decode = jwt.verify(token, process.env.JWT_SECRET_KEY)
 
-        Questions.findOne({_id: id})
-        .then((result) => {
+        if (req.questions) {
             
-            if (result._id.toLocaleString() == id.toLocaleString()) {
-                
-                result.answer.forEach(element => {
-                    if(element._id == idAnswer) {
-                        element.answer = req.body.answer
-                    }
-                })
-                
-                Questions.updateOne({_id: id},
-                    {$set: {
-                        answer: result.answer
-                    }}
-                )
-                .then((result) => {
-                    res.status(200).json({
-                        message: 'update answer berhasil!'
-                    })
-                })
-                .catch((err) => {
-                    res.status(400).json({
-                        message: err.message
-                    })
-                });
-
-            } else {
-
-                res.status(400).json({
-                    message: `your not authorized !`
-                });
-
-            }
-
-        })
-        .catch((err) => {
-            
-            res.status(400).json({
-                message: err.message
+            req.questions.answer.forEach(element => {
+                if(element._id == idAnswer) {
+                    element.answer = req.body.answer
+                }
             })
+            
+            Questions.updateOne({_id: id},
+                {$set: {
+                    answer: req.questions.answer
+                }}
+            )
+            .then((result) => {
+                res.status(200).json({
+                    message: 'Update answer succesfully!'
+                })
+            })
+            .catch((err) => {
+                res.status(400).json({
+                    message: err.message
+                })
+            });
 
+        } else {
 
-        });
+            res.status(400).json({
+                message: `your not authorized !`
+            });
+
+        }
+
     }
 
 

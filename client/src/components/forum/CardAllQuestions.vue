@@ -9,6 +9,7 @@
                     </div>
                 </v-card-text>
                 <v-card-text>
+                    <h5>Category : {{data.category}}</h5>
                     <h5 class="caption">Questions on {{ moment(data.createdAt).format("dddd, MMMM Do YYYY, h:mm") }} WIB, by {{data.userId.username}}</h5>
                     <v-btn color="black" style="color:white" :to="`/forum/detail/${data._id}`">Answer</v-btn>
                 </v-card-text>

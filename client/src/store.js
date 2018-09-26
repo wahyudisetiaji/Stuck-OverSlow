@@ -11,6 +11,7 @@ export default new Vuex.Store({
   state: {
     baseURL: api,
     token: false,
+    username: '',
     message: '',
     myQuestions: '',
     oneQuestions: '',
@@ -22,6 +23,9 @@ export default new Vuex.Store({
   mutations: {
     setToken (state, payload) {
       state.token = payload
+    },
+    setUsername (state, payload) {
+      state.username = payload
     },
     setMessage (state, payload) {
       state.message = payload
@@ -102,8 +106,11 @@ export default new Vuex.Store({
         }
       })
         .then((result) => {
-          context.commit('setToken', true)
           let token = result.data.data.token
+          let username = result.data.data.username
+          context.commit('setToken', true)
+          context.commit('setUsername', username)
+          localStorage.setItem('username', username)
           localStorage.setItem('token', token)
           router.push('/')
         })

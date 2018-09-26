@@ -11,7 +11,7 @@
 
               <div class="title mb-3">Check out our newest features!</div>
 
-              <v-btn class="mx-0 button" to="/" large>
+              <v-btn class="mx-0 button" to="/forum" large>
                 See more
               </v-btn>
             </v-flex>

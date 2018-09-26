@@ -47,7 +47,7 @@ export default {
     ],
     notif: false,
     googleSignInParams: {
-      client_id: '444358458118-0577jg8bnvsaqa2st9a00qlbush7qodd.apps.googleusercontent.com'
+      client_id: '444358458118-gkb1cc48fd6ugs2rt7s7edp0ubd1r23r.apps.googleusercontent.com'
     }
   }),
   computed: {

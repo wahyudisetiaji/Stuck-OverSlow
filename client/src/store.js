@@ -2,8 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
 import router from './router'
-// const api = 'https://stuck-over.wahyudisetiaji.xyz'
-const api = 'http://localhost:3000'
+const api = 'https://stuck-over.wahyudisetiaji.xyz'
+// const api = 'http://localhost:3000'
 
 Vue.use(Vuex)
 
